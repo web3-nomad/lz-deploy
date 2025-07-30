@@ -10,6 +10,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {Skeleton} from "@/components/ui/skeleton"
 import {useToast} from "@/hooks/use-toast"
 
+/*
 interface Deployment {
     chainId: string
     chainName: string
@@ -21,7 +22,7 @@ interface Deployment {
     verified: boolean
     explorerUrl?: string
 }
-
+*/
 interface ChainDetails {
     chainType: string
     chainKey: string
@@ -61,7 +62,7 @@ interface DeploymentChain {
     chainDetails: ChainDetails
 }
 
-interface Deployment2 { [key:string]: DeploymentChain};
+interface Deployment2 { [key:string]: DeploymentChain}
 
 export default function LayerZeroDeployments() {
     const [deployments, setDeployments] = useState<Map<string,DeploymentChain>>(new Map())
@@ -152,7 +153,7 @@ export default function LayerZeroDeployments() {
         }
     }
 
-    const uniqueChains = Array.from(new Set( [...deployments].map(( [chain,deployment]) => deployment.chainKey)))
+    const uniqueChains = Array.from(new Set( [...deployments].map(( [_chain,deployment]) => deployment.chainKey)))
         .map((chainId) => ({id: chainId, name: getChainName(chainId)}))
         .sort((a, b) => a.name.localeCompare(b.name))
 
