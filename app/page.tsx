@@ -47,6 +47,7 @@ interface DVN {
     version: number
     canonicalName: string
     id: string
+    deprecated?: boolean
 }
 
 interface DeploymentChain {
@@ -380,10 +381,45 @@ export default function LayerZeroDeployments() {
                                                         {dd.lzExecutor?.address && (
                                                             <>LZ Executor <span
                                                                 className="text-xs">{dd.lzExecutor.address}</span><br/></>
-                                                        )}      {dd.blockedMessageLib?.address && (
-                                                            <>Blocked Message Lib <span
-                                                                className="text-xs">{dd.blockedMessageLib.address}</span><br/></>
-                                                        )}
+                                                        )} {dd.blockedMessageLib?.address && (
+                                                        <>Blocked Message Lib <span
+                                                            className="text-xs">{dd.blockedMessageLib.address}</span><br/></>
+                                                    )}
+
+                                                    </div>
+                                                ))}
+                                                <div className="flex items-center justify-between">
+                                                    {/*
+                                                    <span className="text-sm font-medium">EID:</span>
+                                                    <div className="flex items-center gap-1">
+                                                        <code className="text-xs bg-muted px-2 py-1 rounded">
+                                                          xxx
+                                                        </code>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-6 w-6 p-0"
+                                                            onClick={() => copyToClipboard("TBD")}
+                                                        >
+                                                            {copiedAddress === "TBD" ? (
+                                                                <Check className="h-3 w-3 text-green-600"/>
+                                                            ) : (
+                                                                <Copy className="h-3 w-3"/>
+                                                            )}
+                                                        </Button>
+                                                    </div>
+                                                    */}
+                                                </div>
+
+                                            </div>
+                                            <div className="space-y-2">
+                                                {deployment.dvns && Object.entries(deployment.dvns).map(([addr, dvn]) => (
+                                                    <div key={addr}
+                                                         className={`border ${dvn.deprecated ? 'bg-blue-50' : ''}`}>
+
+                                                        <h2 className='font-bold'>{dvn.canonicalName} {dvn.deprecated && ("(DEPRECATED)")}</h2>
+                                                        {addr}
+
 
                                                     </div>
                                                 ))}
