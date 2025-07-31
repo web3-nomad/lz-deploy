@@ -1,7 +1,7 @@
 "use client"
 
 import {useEffect, useState} from "react"
-import {Check, Copy, ExternalLink, Filter, Search} from "lucide-react"
+import {ExternalLink, Filter, Search} from "lucide-react"
 import {Input} from "@/components/ui/input"
 import {Button} from "@/components/ui/button"
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card"
@@ -28,45 +28,64 @@ interface ChainDetails {
     chainKey: string
     chainStack: string
     chainLayer: string
+    nativeChainId: number
     nativeCurrency: {
         symbol: string
         cgId: string
         cmcId: number
         decimals: number
     }
-    deployments: {
-        eid: string
-        endpoint: { address: string }
-        endpointV2View: { address: string }
-        chainKey: string
-        stage: string
-        relayerV2: { address: string }
-        ultraLightNodeV2: { address: string }
-        sendUln301: { address: string }
-        receiveUln301: { address: string }
-        blockedMessageLib: { address: string }
-        nonceContract: { address: string }
-        version: number
-    }
-    dvns:  DVNS
-    blockExplorers: {url: string}[]
+
+
 }
-interface DVNS { [key:string]: DVN}
+
+interface DVNS {
+    [key: string]: DVN
+}
+
 interface DVN {
     version: number
     canonicalName: string
     id: string
 }
+
 interface DeploymentChain {
     chainKey: string
     chainDetails: ChainDetails
+    blockExplorers: { url: string }[]
+    dvns: DVNS
+    deployments: {
+        eid: string
+        endpoint: { address: string }
+        chainKey: string
+        stage: string
+        version: number
+        relayerV2: { address: string }
+        ultraLightNodeV2: { address: string }
+        sendUln301: { address: string }
+        receiveUln301: { address: string }
+        nonceContract: { address: string }
+
+        executor: { address: string }
+        endpointV2View: { address: string }
+        endpointV2: { address: string }
+
+        sendUln302: { address: string }
+        lzExecutor: { address: string }
+        receiveUln302: { address: string }
+        blockedMessageLib: { address: string }
+
+
+    }[]
 }
 
-interface Deployment2 { [key:string]: DeploymentChain}
+interface Deployment2 {
+    [key: string]: DeploymentChain
+}
 
 export default function LayerZeroDeployments() {
-    const [deployments, setDeployments] = useState<Map<string,DeploymentChain>>(new Map())
-    const [filteredDeployments, setFilteredDeployments] = useState<Map<string,DeploymentChain>>({})
+    const [deployments, setDeployments] = useState<Map<string, DeploymentChain>>(new Map())
+    const [filteredDeployments, setFilteredDeployments] = useState<Map<string, DeploymentChain>>(new Map())
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [searchTerm, setSearchTerm] = useState("")
@@ -90,14 +109,14 @@ export default function LayerZeroDeployments() {
             if (!response.ok) {
                 throw new Error("Failed to fetch deployments")
             }
-            const data :Deployment2 = await response.json();
-            const m  = new  Map<string,DeploymentChain> ();
+            const data: Deployment2 = await response.json();
+            const m = new Map<string, DeploymentChain>();
             for (let d in data) {
-                m.set(d,data[d])
+                m.set(d, data[d])
             }
 
             // Transform the data into a more usable format
-           // const transformedData: Deployment[] = []
+            // const transformedData: Deployment[] = []
 
             setDeployments(m)
         } catch (err) {
@@ -109,7 +128,7 @@ export default function LayerZeroDeployments() {
 
     const getChainName = (chainId: string): string => {
 
-        return  `${chainId}`
+        return `${chainId}`
     }
 
     const filterDeployments = () => {
@@ -117,21 +136,21 @@ export default function LayerZeroDeployments() {
 
         if (searchTerm) {
             filtered = filtered.filter(
-                ([chain,_deployment]) =>
+                ([chain, _deployment]) =>
                     chain.toLowerCase().includes(searchTerm.toLowerCase()) /* ||
                     deployment.chainKey.toLowerCase().includes(searchTerm.toLowerCase()), */
             )
         }
 
         if (selectedChain !== "all") {
-            filtered = filtered.filter(([chain,deployment]) => deployment.chainKey === selectedChain|| chain === selectedChain)
+            filtered = filtered.filter(([chain, deployment]) => deployment.chainKey === selectedChain || chain === selectedChain)
         }
         if (chainType !== "all") {
-            filtered = filtered.filter(([chain,_]) => chain .endsWith(chainType))
+            filtered = filtered.filter(([chain, _]) => chain.endsWith(chainType))
         }
         console.log("chainType", chainType)
 
-       let filteredMap :Map<string,DeploymentChain> = new Map( filtered)
+        let filteredMap: Map<string, DeploymentChain> = new Map(filtered)
         setFilteredDeployments(filteredMap)
     }
 
@@ -153,7 +172,7 @@ export default function LayerZeroDeployments() {
         }
     }
 
-    const uniqueChains = Array.from(new Set( [...deployments].map(( [_chain,deployment]) => deployment.chainKey)))
+    const uniqueChains = Array.from(new Set([...deployments].map(([_chain, deployment]) => deployment.chainKey)))
         .map((chainId) => ({id: chainId, name: getChainName(chainId)}))
         .sort((a, b) => a.name.localeCompare(b.name))
 
@@ -293,33 +312,87 @@ export default function LayerZeroDeployments() {
                             </Card>
                         ) : (
                             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                {[...filteredDeployments].map(([chain,deployment], index) => (
+                                {[...filteredDeployments].map(([chain, deployment], index) => (
                                     <Card key={index} className="hover:shadow-md transition-shadow">
                                         <CardHeader className="pb-3">
                                             <div className="flex items-start justify-between">
                                                 <div className="space-y-1">
                                                     <CardTitle className="text-lg">{deployment.chainKey}</CardTitle>
-                                                    <CardDescription>{deployment.chainKey}</CardDescription>
+                                                    <CardDescription>{deployment.chainDetails?.chainType || "?"}-{deployment.chainDetails?.nativeCurrency.symbol || ""}</CardDescription>
                                                 </div>
                                                 <div className="flex gap-1">
                                                     {deployment.chainDetails?.chainLayer && (
                                                         <Badge variant="secondary" className="text-xs">
-                                                            Verified
+                                                            {deployment.chainDetails.nativeChainId}
                                                         </Badge>
                                                     )}
-                                                    <Badge variant="outline" className="text-xs">
-                                                        v{deployment.chainDetails?.chainKey}
-                                                    </Badge>
+
                                                 </div>
                                             </div>
                                         </CardHeader>
                                         <CardContent className="space-y-3">
                                             <div className="space-y-2">
+                                                {deployment.deployments && deployment.deployments.map((dd) => (
+                                                    <div key={dd.eid} className='border'>
+                                                        <h2 className='font-bold'>Version: {dd.version}</h2>
+                                                        EID: {dd.eid} <br/>
+                                                        {dd.endpoint?.address && (
+                                                            <>Endpoint <span
+                                                                className="text-xs">{dd.endpoint.address}</span><br/>
+                                                            </>
+                                                        )}
+                                                        {dd.endpointV2View?.address && (
+                                                            <>Endpoint V2 View <span
+                                                                className="text-xs">{dd.endpointV2View.address}</span><br/></>
+                                                        )}
+                                                        {dd.endpointV2?.address && (
+                                                            <>Endpoint V2 <span
+                                                                className="text-xs">{dd.endpointV2.address}</span><br/></>
+                                                        )}
+                                                        {dd.relayerV2?.address && (
+                                                            <>Relayer V2 <span
+                                                                className="text-xs">{dd.relayerV2.address}</span><br/></>
+                                                        )}
+                                                        {dd.sendUln301?.address && (
+                                                            <>Send ULN301 <span
+                                                                className="text-xs">{dd.sendUln301.address}</span><br/></>
+                                                        )}
+                                                        {dd.ultraLightNodeV2?.address && (
+                                                            <>UltraLight NodeV2 <span
+                                                                className="text-xs">{dd.ultraLightNodeV2.address}</span><br/></>
+                                                        )}
+                                                        {dd.nonceContract?.address && (
+                                                            <>Nonce Contract <span
+                                                                className="text-xs">{dd.nonceContract.address}</span><br/></>
+                                                        )}
+                                                        {dd.sendUln302?.address && (
+                                                            <>Send ULN302 <span
+                                                                className="text-xs">{dd.sendUln302.address}</span><br/></>
+                                                        )}
+                                                        {dd.receiveUln301?.address && (
+                                                            <>Receive ULN301 <span
+                                                                className="text-xs">{dd.receiveUln301.address}</span><br/></>
+                                                        )}
+                                                        {dd.receiveUln302?.address && (
+                                                            <>Receive ULN302 <span
+                                                                className="text-xs">{dd.receiveUln302.address}</span><br/></>
+                                                        )}
+                                                        {dd.lzExecutor?.address && (
+                                                            <>LZ Executor <span
+                                                                className="text-xs">{dd.lzExecutor.address}</span><br/></>
+                                                        )}      {dd.blockedMessageLib?.address && (
+                                                            <>Blocked Message Lib <span
+                                                                className="text-xs">{dd.blockedMessageLib.address}</span><br/></>
+                                                        )}
+
+                                                    </div>
+                                                ))}
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-sm font-medium">Address:</span>
+                                                    {/*
+                                                    <span className="text-sm font-medium">EID:</span>
                                                     <div className="flex items-center gap-1">
                                                         <code className="text-xs bg-muted px-2 py-1 rounded">
-                                                            TBD
+                                                          xxx
                                                         </code>
                                                         <Button
                                                             variant="ghost"
@@ -334,24 +407,15 @@ export default function LayerZeroDeployments() {
                                                             )}
                                                         </Button>
                                                     </div>
+                                                    */}
                                                 </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-sm font-medium">Chain ID:</span>
-                                                    <Badge variant="outline">{deployment.chainId}</Badge>
-                                                </div>
-                                                {deployment.deploymentBlock && (
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-sm font-medium">Block:</span>
-                                                        <span
-                                                            className="text-sm text-muted-foreground">{deployment.deploymentBlock}</span>
-                                                    </div>
-                                                )}
+
                                             </div>
-                                            {deployment.explorerUrl && (
+                                            {deployment.blockExplorers && deployment.blockExplorers.length > 0 && (
                                                 <Button variant="outline" size="sm" className="w-full bg-transparent"
                                                         asChild>
                                                     <a
-                                                        href={deployment.explorerUrl}
+                                                        href={deployment.blockExplorers[0].url}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="flex items-center gap-2"
